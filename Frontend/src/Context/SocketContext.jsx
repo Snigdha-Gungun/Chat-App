@@ -5,19 +5,23 @@ import { useContext } from "react";
 
 const SocketContext = createContext()
 
-export const useSocketContext = ()=>{
+export const useSocketContext = () => {
     return useContext(SocketContext);
 }
 
-export const SocketContextProvider = ({children})=>{
+export const SocketContextProvider = ({ children }) => {
 
-    const [socket,setSocket] = useState(null)
-    const [online,setOnline] = useState([])
-    const {authUser} = useAuthContext()
+    const [socket, setSocket] = useState(null)
+    const [online, setOnline] = useState([])
+    const { authUser } = useAuthContext()
 
-    useEffect(()=>{
-        if(authUser){
-            const socket = io('https://chat-app-p7xy.onrender.com',{
+    useEffect(() => {
+        if (authUser) {
+            const socketUrl = window.location.hostname === 'localhost'
+                ? 'http://localhost:5000'
+                : 'https://chat-app-p7xy.onrender.com';
+
+            const socket = io(socketUrl, {
                 query: {
                     userId: authUser._id
                 }
@@ -25,20 +29,20 @@ export const SocketContextProvider = ({children})=>{
 
             setSocket(socket)
 
-            socket.on('getOnlineUsers',(users)=>{
+            socket.on('getOnlineUsers', (users) => {
                 setOnline(users)
                 // console.log(users)
             })
-            return ()=>socket.close()
+            return () => socket.close()
         }
-        else{
-            if(socket){
+        else {
+            if (socket) {
                 socket.close()
                 setSocket(null)
             }
         }
-    },[authUser])
+    }, [authUser])
 
     // return <SocketContext.Provider value={{socket,online}}>{child}</SocketContext.Provider>
-    return <SocketContext.Provider value={{socket,online}}>{children}</SocketContext.Provider>;
+    return <SocketContext.Provider value={{ socket, online }}>{children}</SocketContext.Provider>;
 }
